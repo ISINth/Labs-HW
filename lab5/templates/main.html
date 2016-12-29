@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    L5
+{% endblock %}
+
+{% block title_visible %}
+    Неплохая пятая лаба
+{% endblock %}
+
+
+{% block body %}
+    {% for p in posts %}
+        {% if p.id|divisibleby:4 %}
+            <div class="row">
+        {% endif %}
+    <div class="col-md-3">
+        {% include 'post_short.html' with post=p %}
+    </div>
+    {% if p.id|divisibleby:4 or forloop.last %}
+        </div>
+    {% endif %}
+
+    {% empty %}
+        The list is empty.
+    {% endfor %}
+
+{% endblock %}

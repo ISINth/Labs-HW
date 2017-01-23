@@ -1,0 +1,108 @@
+{% extends 'bookshop/base.html' %}
+	{% block content %}
+		<a href='http://127.0.0.1:8000/main' class='main'>На главную</a>
+		<h1>Информация</h1>
+		<div id="book_inf">
+			<div>
+				<p>Номер: <i>{{book.name}}</i></p>
+				<p>Категория: <i>{{book.author}}</i></p>
+				<p>Количество: <i class=num>{{book.number}}</i></p>
+				<p>Оценка: <i>{{book.cover}}</i></p>
+				<img src='{{book.img.url}}' class="book" width="250" height="180">
+			</div>
+			<div id="r">
+				<h2>Описание</h2>
+				<p>{{book.desc}}</p>
+			</div>
+		</div>
+		<div id='action'>
+			<div id="users">
+			{% if user_list %}
+				<div class="alrdy">
+					<p>Уже забронировали:</p>
+					{% for user in user_list %}
+						<span class="us">{{user.user}} {% if user.number > 1 %} x {{user.number}} {% endif %}</span><br>
+					{% endfor %}
+				</div>
+			{% else %}
+				<p>Еще никто не забронировал этот номер</p>
+			{% endif %}
+			</div>
+			{% if book.number > 0 %}
+				<div id='count'>
+					{% if log_in %}
+						<form method="POST" id="edit">
+							{% csrf_token %}
+							<button type='button'>Забронировать</button>
+						</form>	
+					{% else %}
+						<a href='/'>Авторизируйтесь, чтобы сделать бронь</a>
+					{% endif %}
+					{% else %}
+						<p>Свободных номеров не осталось</p>
+					{% endif %}
+				</div>
+		</div>
+			
+		<script>
+					var pos = 0;
+					while (true) {
+  						var foundPos = document.body.innerHTML.indexOf("bookshop/", pos);
+  						if (foundPos == -1) break;
+  						document.getElementById("book_inf").innerHTML= document.getElementById("book_inf").innerHTML.replace('bookshop/', '/');
+  						pos = foundPos + 1; // продолжить поиск со следующей
+					}
+					var csrftoken = $.cookie('csrftoken');
+
+					function csrfSafeMethod(method) {
+					    // these HTTP methods do not require CSRF protection
+					    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+					}
+
+					$.ajaxSetup({
+					    beforeSend: function(xhr, settings) {
+					        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+					            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+					        }
+					    }
+					});
+					$(document).ready(function(){
+						$('button').click(function(){
+							$.ajax({
+								url: "",
+								type: "POST",
+								success: function(data){
+									
+									$('.num').text(data.num)
+									
+									var str2=$('#users').text()
+									var str1=str2.substring(9,12)
+									var str3=$('.alrdy').text()
+									if ( ~str2.indexOf("Еще") ){
+										$("#users").text("")
+										$("#users").append('<div class="alrdy"><p>Уже забронировали:</p><span class=us>'+data.us_l.user+'</span><br></div>')
+									}else if ( ~str3.indexOf(data.us_l.user) ){
+										var text=$('.alrdy').text()
+										
+										$('.us').each(function(){
+											
+											if (~$( this ).text().indexOf(data.us_l.user)){
+												
+												$( this ).text(data.us_l.user+' x ' + data.us_l.number)
+											}
+										})
+										
+									}else{
+										
+										$('.alrdy').append('<span class="us">'+data.us_l.user+'</span><br></div>')
+									}
+									if (!data.num){
+										$('#count').html('<p>Свободных номеров не осталось</p>')
+									}
+									
+							  	}
+							});						
+						})	
+					})
+		</script>
+	{% endblock %}

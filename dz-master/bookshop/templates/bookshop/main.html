@@ -1,0 +1,168 @@
+{% extends 'bookshop/base.html' %}
+	{% block content %}
+		<h1>Отель "Последнее пристанище"</h1>
+		{% if admin %}
+			<div id='menu'>
+				<a href='#edit' class='button'><p>Добавить апартаменты</p></a>
+				<!--<a href='#' class='button'><p>Добавить пользователя</p></a>-->
+			</div>
+		{% endif %}
+		<div id='books'>
+		{% for book in books %}
+		<a href="{% url 'info' pk=book.pk %}">
+			<div id="book">
+				<div class="desc">
+					<p class="book">Номер: <i>{{book.name}}</i></p>
+					<p class='book'>Категория: <i>{{book.author}}</i></p>
+				</div>
+				<img src='{{book.img.url}}' class="book" width="250" height="180">
+			</div>
+		</a>
+		{% endfor %}
+		</div>
+	<!--	<div class="pagination">
+    		<span class="step-links">
+        		{% if books.has_previous %}
+           			<a href="?page={{ books.previous_page_number }}">&larr;Назад</a>
+	       		{% endif %}
+			        <span class="current">
+       			    Страница {{ books.number }} из {{ books.paginator.num_pages }}.
+       			</span>
+        		{% if books.has_next %}
+   	        		<a href="?page={{ books.next_page_number }}">Вперед&rarr;</a>
+       			{% endif %}
+	    		</span>
+		</div>-->
+    <button class='next'>Показать еще</button>	
+		
+
+		<div id="edit" class="modalDialog">
+			<div>
+				<a href="#close" title="Закрыть" class="close">X</a>
+				<h1>Добавить:</h1>
+					<form method="POST" enctype="multipart/form-data">
+						{% csrf_token %}
+						{{form.as_p}}
+						<button type=button onclick="validate(this.form)">Сохранить</button>
+					</form>	
+			</div>
+		</div>
+
+
+		<script>
+					var pos = 0;
+					while (true) {
+  						var foundPos = document.body.innerHTML.indexOf("bookshop/", pos);
+  						if (foundPos == -1) break;
+  						document.getElementById("books").innerHTML= document.getElementById("books").innerHTML.replace('bookshop/', '/');
+  						pos = foundPos + 1; // продолжить поиск со следующей
+					}	
+
+
+	function showError(container, errornumber) {
+      container.className = 'error';
+      var msgElem = document.createElement('span');
+      msgElem.className = "error-number";
+      msgElem.innerHTML = errornumber;
+      container.appendChild(msgElem);
+    }
+
+    function resetError(container) {
+      container.className = '';
+      if (container.lastChild.className == "error-number") {
+        container.removeChild(container.lastChild);
+      }
+    }
+
+    function validate(form) {
+      var elems = form.elements;
+      err=0;
+      resetError(elems.name.parentNode);
+      if (!elems.name.value) {
+        showError(elems.name.parentNode, ' Укажите номер.');
+        err=1;
+      }
+
+      resetError(elems.author.parentNode);
+      if (!elems.author.value) {
+        showError(elems.author.parentNode, ' Укажите категорию.');
+        err=1;
+      }
+
+      resetError(elems.cover.parentNode);
+      if (!elems.cover.value) {
+        showError(elems.cover.parentNode, ' Укажите оценку.');
+        err=1;
+      }
+
+      resetError(elems.number.parentNode);
+      if (!elems.number.value) {
+        showError(elems.number.parentNode, ' Укажите количество.');
+        err=1;
+      }
+
+      resetError(elems.img.parentNode);
+      if (!elems.img.value) {
+        showError(elems.img.parentNode, ' Выберите картинку.');
+        err=1;
+      }
+
+      resetError(elems.desc.parentNode);
+      if (!elems.desc.value) {
+        showError(elems.desc.parentNode, ' Отсутствует описание.');
+        err=1;
+      }
+      if (!err){
+      	form.submit()
+      }
+
+    }	
+    var csrftoken = $.cookie('csrftoken');
+
+          function csrfSafeMethod(method) {
+              // these HTTP methods do not require CSRF protection
+              return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+          }
+
+          $.ajaxSetup({
+              beforeSend: function(xhr, settings) {
+                  if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                      xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                  }
+              }
+          });
+          i=2;
+          block=true
+          //$(document).ready(function(){
+            //$('.next').click(function(){
+          $(window).scroll(function () {            //проверяет на скрол, проверяет количество элементов для подгрузки и загружает
+            if($(window).height() + $(window).scrollTop() >= $(document).height() && block) {
+              block = false
+              i+=1
+
+              $.ajax({
+                url: "",
+                type: "GET",
+                data:{
+                  page:i,
+                  ajax:'1'
+                },
+                success: function(data){
+                  data.list.forEach(display)
+                  function display(book){
+                    $('#books').append('<a href="../info/'+book.pk+'"><div id="book"><div class="desc"><p class="book">Номер: '
+                                                      +book.name+'</p><p class="book">Категория: '+
+                                                      book.author+'</p></div><img src="'+
+                                                      book.img+'" class="book" width="250" height="180"></div></a>')
+                    block=true
+                    if (i==data.max){
+                    $('.next').css("display","none")
+                    block = false
+                  }
+                  }
+                }
+              })
+            }
+          })
+		</script>
+	{% endblock %}

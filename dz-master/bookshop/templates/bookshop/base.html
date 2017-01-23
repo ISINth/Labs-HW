@@ -1,0 +1,13 @@
+    {% load staticfiles %}
+    <html>
+        <head>
+            <title>Отель вашей мечты</title>
+            <script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+            <script src="{% static 'js/jquery.cookie.js' %}"></script>
+            <link rel="stylesheet" href="{% static 'css/bookshop.css' %}">
+        </head>
+        <body>
+            {% block content %}
+            {% endblock %}
+        </body>
+    </html>
